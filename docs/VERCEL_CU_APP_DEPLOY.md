@@ -4,6 +4,28 @@ Get this project live at **cu.app** using a new Vercel project. Domain is at GoD
 
 ---
 
+## 0. Push to GitHub (do this first)
+
+The project is already initialized with git and one commit. To push to GitHub:
+
+1. **Create a new repo on GitHub:** [github.com/new](https://github.com/new)  
+   - Name it e.g. `cu-app` or `configuration-matrix-build`  
+   - Leave it empty (no README, no .gitignore).
+
+2. **Add your repo as remote and push:**
+
+```bash
+cd /path/to/configuration-matrix-build
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git branch -M main
+git push -u origin main
+```
+
+Replace `YOUR_USERNAME` and `YOUR_REPO` with your GitHub username and repo name.  
+If you use SSH: `git remote add origin git@github.com:YOUR_USERNAME/YOUR_REPO.git`
+
+---
+
 ## 1. Create a new Vercel project
 
 1. Go to [vercel.com](https://vercel.com) and sign in.
