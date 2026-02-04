@@ -10,7 +10,23 @@ Deploy **this config matrix builder only** to your existing Vercel project and s
 
 **Vercel project ID:** `prj_0YRJPl6JvHZL1EBxgn1Ihl9D7GlT`
 
-### One-time: link this repo to that project
+**Deploy from GitHub:** [https://github.com/kuscheux/cu-app-network](https://github.com/kuscheux/cu-app-network)
+
+### Push this code to cu-app-network (one-time)
+
+1. **Create the repo** (if it doesn’t exist): [github.com/new](https://github.com/new) → name it `cu-app-network`, leave empty.
+2. **Push from this project** (remote `network` is already set to that repo):
+
+```bash
+cd /path/to/configuration-matrix-build
+git push network main -u
+```
+
+If you haven’t pushed before, create the repo first. If the repo already has other content, you may need to force-push or merge (e.g. `git push network main --force` only if you intend to replace the remote).
+
+3. **Connect Vercel** to **https://github.com/kuscheux/cu-app-network**: Vercel → your project → **Settings** → **Git** → connect that repository (or create a new project and import `kuscheux/cu-app-network`). Future pushes to `main` will trigger deploys.
+
+### One-time: link this repo to that Vercel project (CLI deploys)
 
 From the project root:
 
