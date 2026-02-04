@@ -1,4 +1,4 @@
-# Platform: Left menu options and content views (everything unlocked)
+# Platform: Left menu (SDLC-aligned) and content views
 
 No login gate — all views are available as soon as a credit union is selected.
 
@@ -6,55 +6,87 @@ No login gate — all views are available as soon as a credit union is selected.
 
 ## Sidebar behavior
 
-- **Collapse toggle** is at the **top** of the left menu (first row when expanded).
-- **Hover to expand:** When the sidebar is collapsed, hovering over it expands it temporarily; moving the mouse away collapses it again.
-- **Collapse** = narrow icon strip. **Expand** = full sidebar with labels + CU dropdown.
+- **Collapse toggle** at the **top** of the left menu (when expanded).
+- **Hover to expand:** When collapsed, hovering expands temporarily.
+- **Theme:** Dark/Light toggle in sidebar footer and in the main header (quick toggle, not a nav item).
+- **Collapse** = narrow icon strip with section icons. **Expand** = section labels (DISCOVER, DESIGN, etc.) + items.
 
 ---
 
-## Left menu items (in order)
+## SDLC menu structure (every route defined)
 
-| # | id | Name | Badge | Description |
-|---|----|------|-------|-------------|
-| 1 | summary | Product Summary | NEW | All features at a glance with Configure buttons |
-| 2 | config | Configuration | — | 16-tier config editor (Identity, Design Tokens, Features, IVR, Products, Rules, Fraud, Compliance, Integrations, Channels, Notifications, Content, UX, AI, Deployment, PowerOn) |
-| 3 | app-studio | App Studio | cu_ui | Layout UI for internal and member-facing apps — Design System + Live Preview side by side |
-| 4 | call-center | Call Center | IVR | Call center UI and IVR — Lobby, caller context, member lookup; aligned with config |
-| 5 | design-system | Design System | cu_ui | Complete Flutter UI design system |
-| 6 | preview | App Preview | — | Live Flutter mobile preview with cu_ui components |
-| 6 | gallery | CU Gallery | 4,300+ | All 4,300+ credit unions (link to /gallery) |
-| 7 | status | Status | — | Overview dashboard with stats |
-| 8 | profile | CU Profile | — | Credit union profile and branding |
-| 9 | fraud | Fraud Network | Private | Federated fraud intelligence |
-| 10 | enrichment | Data Discovery | — | AI-powered data discovery |
-| 11 | mapping | Field Mapping | — | Map PowerOn fields to app config |
-| 12 | tokens | Design Tokens | CU UI | cu_ui design system tokens |
-| 13 | apps | App Reviews | — | App Store reviews |
-| 14 | support | Member Support | 3 | Support queue and IVR logs |
-| 15 | github | GitHub CI/CD | — | GitHub sync and deployment |
-| 16 | launch | Business Launch | 7 | Launch checklist |
-| 17 | rules | Rule Builder | — | Visual business rules builder (link to /rules) |
-| 18 | sources | Data Sources | — | Connected integrations |
-| 19 | uat | UAT Testing | 31 | User Acceptance Testing |
-| 20 | omnichannel | Omnichannel | ALL | IVR, Mobile, Web, Chat as ONE |
-| 21 | marketing | Marketing Site | CMS | Edit and preview marketing website |
-| 22 | features | Feature Catalog | — | Feature catalog and package cloning |
-| 23 | codebase | Codebase | 432K | Source code navigation |
-| 24 | screen-inspector | Screen Inspector | 209+ | Click any element to see data source |
+Sections and items in order. Each item has a **route** (`/?view=id` or `href` for external) and optional **tabs** inside the view.
 
-Then in sidebar: **Background Jobs**, **Dark Mode**, **Enroll in pilot** (if not enrolled), **User menu** (avatar, role, Logout), and when expanded the **Collapse** button is at the top.
+### 1. DISCOVER
+
+| id | Name | Badge | Route / Tabs |
+|----|------|-------|---------------|
+| summary | Product Summary | NEW | `/?view=summary` |
+| profile | CU Profile | — | `/?view=profile` |
+| enrichment | Data Discovery | — | `/?view=enrichment` |
+| schema-map | Schema Map | 700+ | `/?view=schema-map` |
+| sources | Data Sources | — | `/?view=sources` |
+| gallery | CU Gallery | 4,300+ | `/gallery` (href) |
+
+### 2. DESIGN
+
+| id | Name | Badge | Route / Tabs |
+|----|------|-------|---------------|
+| design-system | Design System | cu_ui | `/?view=design-system` |
+| tokens | Design Tokens | CU UI | `/?view=tokens` |
+| app-studio | Member App Studio | cu_ui | `/?view=app-studio` |
+| preview | App Preview | — | `/?view=preview` |
+| screen-inspector | Screen Inspector | 209+ | `/?view=screen-inspector` |
+
+### 3. CONFIGURE
+
+| id | Name | Badge | Route / Tabs |
+|----|------|-------|---------------|
+| config | Platform Configuration | — | `/?view=config` (16-tier editor) |
+| call-center | Call Center / IVR | IVR | `/?view=call-center` (Lobby, IVR tabs) |
+| omnichannel | Omnichannel | ALL | `/?view=omnichannel` |
+| fraud | Fraud Network | Private | `/?view=fraud` |
+| rules | Rule Builder | — | `/rules` (href) |
+| marketing | Marketing Site | CMS | `/?view=marketing` |
+| features | Feature Catalog | — | `/?view=features` |
+| mapping | Field Mapping | — | `/?view=mapping` |
+| support | Member Support | 3 | `/?view=support` |
+
+### 4. TEST & LAUNCH
+
+| id | Name | Badge | Route / Tabs |
+|----|------|-------|---------------|
+| uat | UAT Testing | 31 | `/?view=uat` |
+| status | Environment Status | — | `/?view=status` |
+| launch | Business Launch | 7 | `/?view=launch` |
+| pilot-enroll | Enroll in Pilot | — | (opens sheet; not a view) |
+
+### 5. OPERATE
+
+| id | Name | Badge | Route / Tabs |
+|----|------|-------|---------------|
+| apps | App Reviews | — | `/?view=apps` |
+| support-operate | Member Support | 3 | `/?view=support` (same view as Configure) |
+
+### 6. SYSTEM
+
+| id | Name | Badge | Route / Tabs |
+|----|------|-------|---------------|
+| github | GitHub CI/CD | — | `/?view=github` |
+| codebase | Codebase | 432K | `/?view=codebase` |
+| settings | Settings | — | (opens settings dialog; not a view) |
 
 ---
 
-## Content views (main area) — all still present
+## Content views (main area) — all routes
 
 - **summary** → `ProductSummaryDashboard`
-- **config** → `CUConfigDashboard`
-- **app-studio** → `DualFlutterStudioShell` (App Studio)
+- **config** → `CUConfigDashboard` (Platform Configuration; default when no `view` param — lands on Navy Federal)
+- **app-studio** → `DualFlutterStudioShell` (Member App Studio)
 - **call-center** → `CallCenterView` (Lobby + IVR tabs)
 - **design-system** → `DesignSystemView` (AppBuilderStudio full)
-- **preview** → `AppPreviewView` (AppBuilderStudio preview)
-- **status** → `StatusView`
+- **preview** → `AppPreviewView`
+- **status** → `StatusView` (Environment Status)
 - **profile** → `CUPublicProfile` + `TenantProfileSidebar`
 - **fraud** → `FraudNetworkDashboard`
 - **enrichment** → `DiscoveryDashboard`
@@ -72,4 +104,6 @@ Then in sidebar: **Background Jobs**, **Dark Mode**, **Enroll in pilot** (if not
 - **codebase** → `CodebaseOverview`
 - **screen-inspector** → `ScreenInspector`
 
-**Login gate removed:** Main content no longer shows `LandingGate`; it goes straight to “Loading credit unions…” then the selected view when a CU is chosen. Nothing was deleted from the menu or from the content views.
+**External routes:** `/gallery`, `/rules` — navigated via `href`; no `view` param.
+
+**Actions (no view):** **Enroll in Pilot** opens pilot enrollment sheet; **Settings** opens settings dialog. **Theme** (Dark/Light) is a quick toggle in sidebar and header.

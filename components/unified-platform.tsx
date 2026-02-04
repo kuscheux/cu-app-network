@@ -59,6 +59,7 @@ import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/comp
 import { Card, CardContent } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { CUConfigDashboard } from "./cu-config-dashboard"
 import { GitHubConnectDialog } from "./github-connect-dialog"
 import { FieldMappingTable } from "./field-mapping-table"
@@ -86,7 +87,6 @@ import { AppBuilderStudio } from "./app-builder-studio"
 import { DualFlutterStudioShell } from "./dual-flutter-studio-shell"
 import { CallCenterView } from "./call-center-view"
 import { SchemaMapView } from "./schema-map-view"
-import { MinimalLandingTypewriter } from "./minimal-landing-typewriter"
 import { ScreenInspector } from "./screen-inspector"
 import { CuWordmarkBadge } from "./cu-wordmark-badge"
 import { PilotEnrollmentForm } from "./pilot-enrollment-form"
@@ -206,49 +206,100 @@ interface NavItem {
   href?: string
   badge?: string
   description: string
+  /** When set, clicking this item navigates to this view (e.g. support-operate → support). */
+  viewId?: string
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { id: "summary", name: "Product Summary", icon: <Layers className="h-4 w-4" />, route: "/?view=summary", badge: "NEW", description: "All features at a glance with Configure buttons - PowerOn, Enrichment, FDX, Reviews, CI/CD, Team" },
-  { id: "config", name: "Configuration", icon: <Settings className="h-4 w-4" />, route: "/?view=config", description: "Exhaustive 16-tier config editor (Identity, Design Tokens, Features, IVR, Products, Rules, Fraud, Compliance, Integrations, Channels, Notifications, Content, UX, AI, Deployment, PowerOn)" },
-  { id: "app-studio", name: "App Studio", icon: <Layers className="h-4 w-4" />, route: "/?view=app-studio", badge: "cu_ui", description: "Layout UI for internal and member-facing apps — Design System + Live Preview side by side" },
-  { id: "call-center", name: "Call Center", icon: <Phone className="h-4 w-4" />, route: "/?view=call-center", badge: "IVR", description: "Call center UI and IVR — Lobby, caller context, member lookup; aligned with config" },
-  { id: "design-system", name: "Design System", icon: <Sparkles className="h-4 w-4" />, route: "/?view=design-system", badge: "cu_ui", description: "Complete Flutter UI design system - 50+ components, screens, tokens, light/dark themes" },
-  { id: "preview", name: "App Preview", icon: <Smartphone className="h-4 w-4" />, route: "/?view=preview", description: "Live Flutter mobile preview with cu_ui components" },
-  { id: "gallery", name: "CU Gallery", icon: <Building2 className="h-4 w-4" />, href: "/gallery", route: "/gallery", badge: "4,300+", description: "All 4,300+ credit unions" },
-  { id: "status", name: "Status", icon: <Activity className="h-4 w-4" />, route: "/?view=status", description: "Overview dashboard with stats" },
-  { id: "profile", name: "CU Profile", icon: <Building2 className="h-4 w-4" />, route: "/?view=profile", description: "Credit union profile and branding" },
-  { id: "fraud", name: "Fraud Network", icon: <Shield className="h-4 w-4" />, badge: "Private", route: "/?view=fraud", description: "Private federated fraud intelligence - daisy chain signals across 4,300+ CUs" },
-  { id: "enrichment", name: "Data Discovery", icon: <Sparkles className="h-4 w-4" />, route: "/?view=enrichment", description: "AI-powered data discovery" },
-  { id: "mapping", name: "Field Mapping", icon: <Table2 className="h-4 w-4" />, route: "/?view=mapping", description: "Map PowerOn fields to app config" },
-  { id: "tokens", name: "Design Tokens", icon: <Sparkles className="h-4 w-4" />, route: "/?view=tokens", badge: "CU UI", description: "cu_ui design system tokens" },
-  { id: "apps", name: "App Reviews", icon: <Star className="h-4 w-4" />, route: "/?view=apps", description: "App Store reviews" },
-  { id: "support", name: "Member Support", icon: <Users className="h-4 w-4" />, badge: "3", route: "/?view=support", description: "Support queue (see Call Center for Lobby + IVR)" },
-  { id: "github", name: "GitHub CI/CD", icon: <GitBranch className="h-4 w-4" />, route: "/?view=github", description: "GitHub sync and deployment" },
-  { id: "launch", name: "Business Launch", icon: <Rocket className="h-4 w-4" />, route: "/?view=launch", badge: "7", description: "Complete launch checklist - Infrastructure, databases, integrations, mobile build, testing, go-live" },
-  { id: "rules", name: "Rule Builder", icon: <Workflow className="h-4 w-4" />, href: "/rules", route: "/rules", description: "Visual business rules builder" },
-  { id: "sources", name: "Data Sources", icon: <Database className="h-4 w-4" />, route: "/?view=sources", description: "Connected integrations" },
-  { id: "schema-map", name: "Schema Map", icon: <Table2 className="h-4 w-4" />, route: "/?view=schema-map", badge: "700+", description: "Supabase tables mapped to configurable fields in omnichannel (IVR, Mobile, Web, Chat)" },
-  { id: "uat", name: "UAT Testing", icon: <TestTube className="h-4 w-4" />, route: "/?view=uat", badge: "31", description: "User Acceptance Testing - Test suites and results" },
-  { id: "omnichannel", name: "Omnichannel", icon: <Layers className="h-4 w-4" />, route: "/?view=omnichannel", badge: "ALL", description: "THE OMNICHANNEL SYSTEM - All channels unified: IVR, Mobile, Web, Chat working as ONE experience" },
-  { id: "marketing", name: "Marketing Site", icon: <Globe2 className="h-4 w-4" />, route: "/?view=marketing", badge: "CMS", description: "Edit and preview your credit union's marketing website - Full CMS with pages, media library, and instant publishing" },
-  { id: "features", name: "Feature Catalog", icon: <Package className="h-4 w-4" />, route: "/?view=features", description: "Feature catalog and package cloning" },
-  { id: "codebase", name: "Codebase", icon: <Code className="h-4 w-4" />, route: "/?view=codebase", badge: "432K", description: "Source code navigation - 15,289 files, all sections mapped" },
-  { id: "screen-inspector", name: "Screen Inspector", icon: <Layers className="h-4 w-4" />, route: "/?view=screen-inspector", badge: "209+", description: "Click any element to see its data source - Symitar, Visa DPS, MX, Alloy mapped per screen" },
+interface NavSection {
+  sectionId: string
+  label: string
+  items: NavItem[]
+}
+
+/** SDLC-aligned nav: Discover → Design → Configure → Test & Launch → Operate → System. Every route defined. */
+const NAV_SECTIONS: NavSection[] = [
+  {
+    sectionId: "discover",
+    label: "DISCOVER",
+    items: [
+      { id: "summary", name: "Product Summary", icon: <Layers className="h-4 w-4" />, route: "/?view=summary", badge: "NEW", description: "All features at a glance with Configure buttons" },
+      { id: "profile", name: "CU Profile", icon: <Building2 className="h-4 w-4" />, route: "/?view=profile", description: "Credit union profile and branding" },
+      { id: "enrichment", name: "Data Discovery", icon: <Sparkles className="h-4 w-4" />, route: "/?view=enrichment", description: "AI-powered data discovery" },
+      { id: "schema-map", name: "Schema Map", icon: <Table2 className="h-4 w-4" />, route: "/?view=schema-map", badge: "700+", description: "Supabase tables mapped to configurable fields in omnichannel" },
+      { id: "sources", name: "Data Sources", icon: <Database className="h-4 w-4" />, route: "/?view=sources", description: "Connected integrations" },
+      { id: "gallery", name: "CU Gallery", icon: <Building2 className="h-4 w-4" />, href: "/gallery", route: "/gallery", badge: "4,300+", description: "See how other CUs are built" },
+    ],
+  },
+  {
+    sectionId: "design",
+    label: "DESIGN",
+    items: [
+      { id: "design-system", name: "Design System", icon: <Sparkles className="h-4 w-4" />, route: "/?view=design-system", badge: "cu_ui", description: "Complete Flutter UI design system - 50+ components, tokens, themes" },
+      { id: "tokens", name: "Design Tokens", icon: <Sparkles className="h-4 w-4" />, route: "/?view=tokens", badge: "CU UI", description: "cu_ui design system tokens" },
+      { id: "app-studio", name: "Member App Studio", icon: <Layers className="h-4 w-4" />, route: "/?view=app-studio", badge: "cu_ui", description: "Layout UI — Design System + Live Preview side by side" },
+      { id: "preview", name: "App Preview", icon: <Smartphone className="h-4 w-4" />, route: "/?view=preview", description: "Live Flutter mobile preview with cu_ui components" },
+      { id: "screen-inspector", name: "Screen Inspector", icon: <Layers className="h-4 w-4" />, route: "/?view=screen-inspector", badge: "209+", description: "Click any element to see its data source" },
+    ],
+  },
+  {
+    sectionId: "configure",
+    label: "CONFIGURE",
+    items: [
+      { id: "config", name: "Platform Configuration", icon: <Settings className="h-4 w-4" />, route: "/?view=config", description: "16-tier config editor (Identity, Design Tokens, Features, IVR, Products, Rules, Fraud, Compliance, etc.)" },
+      { id: "call-center", name: "Call Center / IVR", icon: <Phone className="h-4 w-4" />, route: "/?view=call-center", badge: "IVR", description: "Call center UI and IVR — Lobby, caller context, member lookup" },
+      { id: "omnichannel", name: "Omnichannel", icon: <Layers className="h-4 w-4" />, route: "/?view=omnichannel", badge: "ALL", description: "All channels unified: IVR, Mobile, Web, Chat as ONE experience" },
+      { id: "fraud", name: "Fraud Network", icon: <Shield className="h-4 w-4" />, badge: "Private", route: "/?view=fraud", description: "Private federated fraud intelligence across 4,300+ CUs" },
+      { id: "rules", name: "Rule Builder", icon: <Workflow className="h-4 w-4" />, href: "/rules", route: "/rules", description: "Visual business rules builder" },
+      { id: "marketing", name: "Marketing Site", icon: <Globe2 className="h-4 w-4" />, route: "/?view=marketing", badge: "CMS", description: "Edit and preview your credit union's marketing website" },
+      { id: "features", name: "Feature Catalog", icon: <Package className="h-4 w-4" />, route: "/?view=features", description: "Feature catalog and package cloning" },
+      { id: "mapping", name: "Field Mapping", icon: <Table2 className="h-4 w-4" />, route: "/?view=mapping", description: "Map PowerOn fields to app config" },
+      { id: "support", name: "Member Support", icon: <Users className="h-4 w-4" />, badge: "3", route: "/?view=support", description: "Support queue (see Call Center for Lobby + IVR)" },
+    ],
+  },
+  {
+    sectionId: "test-launch",
+    label: "TEST & LAUNCH",
+    items: [
+      { id: "uat", name: "UAT Testing", icon: <TestTube className="h-4 w-4" />, route: "/?view=uat", badge: "31", description: "User Acceptance Testing - Test suites and results" },
+      { id: "status", name: "Environment Status", icon: <Activity className="h-4 w-4" />, route: "/?view=status", description: "Overview dashboard with stats" },
+      { id: "launch", name: "Business Launch", icon: <Rocket className="h-4 w-4" />, route: "/?view=launch", badge: "7", description: "Complete launch checklist - Infrastructure, integrations, go-live" },
+      { id: "pilot-enroll", name: "Enroll in Pilot", icon: <Rocket className="h-4 w-4" />, route: "/?view=config", description: "Unlock app download links (App Store / Google Play)" },
+    ],
+  },
+  {
+    sectionId: "operate",
+    label: "OPERATE",
+    items: [
+      { id: "apps", name: "App Reviews", icon: <Star className="h-4 w-4" />, route: "/?view=apps", description: "App Store reviews" },
+      { id: "support-operate", name: "Member Support", icon: <Users className="h-4 w-4" />, badge: "3", route: "/?view=support", viewId: "support", description: "Support queue (day-2 life)" },
+    ],
+  },
+  {
+    sectionId: "system",
+    label: "SYSTEM",
+    items: [
+      { id: "github", name: "GitHub CI/CD", icon: <GitBranch className="h-4 w-4" />, route: "/?view=github", description: "GitHub sync and deployment" },
+      { id: "codebase", name: "Codebase", icon: <Code className="h-4 w-4" />, route: "/?view=codebase", badge: "432K", description: "Source code navigation - 15,289 files" },
+      { id: "settings", name: "Settings", icon: <Settings className="h-4 w-4" />, route: "/?view=config", description: "Admin / everything unlocked, theme" },
+    ],
+  },
 ]
+
+/** Flattened list for lookups (e.g. finding item by id). */
+const NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((s) => s.items)
 
 export function UnifiedPlatform() {
   const [mounted, setMounted] = useState(false)
   const [role, setRole] = useState<UserRole>("admin")
   const [cuConfig, setCuConfig] = useState<any>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  // Get initial view from URL params - default to landing (minimal typewriter)
+  // Get initial view from URL params - default to config (Navy Federal / platform)
   const [nav, setNav] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      return params.get('view') || "landing"
+      return params.get('view') || "config"
     }
-    return "landing"
+    return "config"
   })
   
   // Update URL when nav changes
@@ -266,7 +317,7 @@ export function UnifiedPlatform() {
     
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search)
-      const view = params.get('view') || "landing"
+      const view = params.get('view') || "config"
       if (view !== nav) {
         setNav(view)
       }
@@ -290,7 +341,7 @@ export function UnifiedPlatform() {
   const [sidebarHoverExpanded, setSidebarHoverExpanded] = useState(false)
   const sidebarExpanded = !sidebarCollapsed || sidebarHoverExpanded
 
-  const { creditUnions, isLoading: cuLoading, totalCount, hasMore, loadMore } = useCreditUnions({
+  const { creditUnions, isLoading: cuLoading, totalCount, hasMore, loadMore, dataSource: cuDataSource } = useCreditUnions({
     search: cuSearchQuery,
     limit: 100,
     sortBy: "total_assets",
@@ -427,6 +478,12 @@ export function UnifiedPlatform() {
                     <Input placeholder="Search 4,300+ credit unions..." value={cuSearchQuery} onChange={(e) => setCuSearchQuery(e.target.value)} className="pl-8 h-9" autoFocus />
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-1 px-1">{totalCount.toLocaleString()} credit unions</p>
+                  {cuDataSource === "fallback" && (
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 px-1 flex items-center gap-1">
+                      <Info className="h-3 w-3 shrink-0" />
+                      Demo list only. Set <code className="text-[9px] bg-muted px-0.5 rounded">NEXT_PUBLIC_SUPABASE_URL</code> and <code className="text-[9px] bg-muted px-0.5 rounded">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in .env.local and ensure the <code className="text-[9px] bg-muted px-0.5 rounded">credit_unions</code> table is populated to see LMCU and 4,300+ CUs.
+                    </p>
+                  )}
                 </div>
                 <ScrollArea className="h-[300px]">
                   {cuLoading && creditUnions.length === 0 ? (
@@ -476,125 +533,136 @@ export function UnifiedPlatform() {
         </div>
       )}
 
-      {/* Nav */}
-      <nav className="flex-1 p-2 space-y-0.5 overflow-auto">
+      {/* Nav - SDLC sections: Discover, Design, Configure, Test & Launch, Operate, System */}
+      <nav className="flex-1 p-2 space-y-3 overflow-auto">
         <TooltipProvider delayDuration={200}>
-          {NAV_ITEMS.map((item) => (
-            <Tooltip key={item.id}>
-              <TooltipTrigger asChild>
-                {item.href ? (
-                  <Link href={item.href}>
-                    <Button
-                      variant={nav === item.id ? "secondary" : "ghost"}
-                      size="sm"
-                      className={cn("w-full h-10 md:h-8 group", collapsed ? "justify-center px-2" : "justify-start gap-2")}
-                      onClick={() => { setNav(item.id); onNavClick?.() }}
-                    >
-                      {item.icon}
-                      {!collapsed && <span className="text-sm flex-1 text-left">{item.name}</span>}
-                      {!collapsed && item.badge && <Badge variant={item.badge === "Live" ? "default" : "destructive"} className="ml-auto h-4 px-1 text-[10px]">{item.badge}</Badge>}
-                      {!collapsed && <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />}
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button
-                    variant={nav === item.id ? "secondary" : "ghost"}
-                    size="sm"
-                    className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")}
-                    onClick={() => { setNav(item.id); onNavClick?.() }}
-                  >
-                    {item.icon}
-                    {!collapsed && <span className="text-sm flex-1 text-left">{item.name}</span>}
-                    {!collapsed && item.badge && <Badge variant={item.badge === "Live" ? "default" : "destructive"} className="ml-auto h-4 px-1 text-[10px]">{item.badge}</Badge>}
-                  </Button>
-                )}
-              </TooltipTrigger>
-              <TooltipContent side="right" className="max-w-[250px]">
-                <div className="space-y-1">
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.description}</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
+          {NAV_SECTIONS.map((section) => (
+            <div key={section.sectionId} className="space-y-0.5">
+              {!collapsed && (
+                <p className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {section.label}
+                </p>
+              )}
+              {section.items
+                .filter((item) => item.id !== "pilot-enroll" || (!strippedMode && !isPilotEnrolled))
+                .map((item) => {
+                  const activeNav = item.viewId ?? item.id
+                  const isActive = nav === activeNav
+                  if (item.id === "pilot-enroll") {
+                    return (
+                      <Sheet key={item.id} open={pilotSheetOpen} onOpenChange={setPilotSheetOpen}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <SheetTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")}
+                              >
+                                {item.icon}
+                                {!collapsed && <span className="text-sm">Enroll in Pilot</span>}
+                              </Button>
+                            </SheetTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="max-w-[250px]">
+                            <p className="font-medium">{item.name}</p>
+                            <p className="text-xs text-muted-foreground">{item.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+                          <div className="space-y-6 py-4">
+                            <div>
+                              <h2 className="text-lg font-semibold text-foreground">Enroll in the pilot</h2>
+                              <p className="text-sm text-muted-foreground mt-1">Unlock app download links (App Store / Google Play) for your credit union.</p>
+                            </div>
+                            <PilotEnrollmentForm
+                              user={authUser}
+                              embedded
+                              onSuccess={() => {
+                                refreshPilotStatus()
+                                setPilotSheetOpen(false)
+                              }}
+                            />
+                          </div>
+                        </SheetContent>
+                      </Sheet>
+                    )
+                  }
+                  if (item.id === "settings") {
+                    return (
+                      <Tooltip key={item.id}>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={isActive ? "secondary" : "ghost"}
+                            size="sm"
+                            className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")}
+                            onClick={() => setSettingsOpen(true)}
+                          >
+                            {item.icon}
+                            {!collapsed && <span className="text-sm flex-1 text-left">{item.name}</span>}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-[250px]">
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )
+                  }
+                  return (
+                    <Tooltip key={item.id}>
+                      <TooltipTrigger asChild>
+                        {item.href ? (
+                          <Link href={item.href}>
+                            <Button
+                              variant={isActive ? "secondary" : "ghost"}
+                              size="sm"
+                              className={cn("w-full h-10 md:h-8 group", collapsed ? "justify-center px-2" : "justify-start gap-2")}
+                              onClick={() => { setNav(activeNav); onNavClick?.() }}
+                            >
+                              {item.icon}
+                              {!collapsed && <span className="text-sm flex-1 text-left">{item.name}</span>}
+                              {!collapsed && item.badge && <Badge variant={item.badge === "Live" ? "default" : "destructive"} className="ml-auto h-4 px-1 text-[10px]">{item.badge}</Badge>}
+                              {!collapsed && <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />}
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Button
+                            variant={isActive ? "secondary" : "ghost"}
+                            size="sm"
+                            className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")}
+                            onClick={() => { setNav(activeNav); onNavClick?.() }}
+                          >
+                            {item.icon}
+                            {!collapsed && <span className="text-sm flex-1 text-left">{item.name}</span>}
+                            {!collapsed && item.badge && <Badge variant={item.badge === "Live" ? "default" : "destructive"} className="ml-auto h-4 px-1 text-[10px]">{item.badge}</Badge>}
+                          </Button>
+                        )}
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[250px]">
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                })}
+            </div>
           ))}
         </TooltipProvider>
       </nav>
 
-      {/* Background Jobs */}
-      {!collapsed && (
-        <div className="px-3 border-t py-6 hidden md:block">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Background Jobs</p>
-          <div className="space-y-1">
-            {backgroundJobs.map((job) => (
-              <div key={job.id} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5">
-                  <span className={cn("h-1.5 w-1.5 rounded-full", job.status === "running" ? "bg-blue-500 animate-pulse" : job.status === "completed" ? "bg-green-500" : job.status === "failed" ? "bg-red-500" : "bg-gray-400")} />
-                  <span className="text-muted-foreground">{job.name}</span>
-                </div>
-                <span className={cn("text-[10px]", job.status === "running" ? "text-blue-500" : job.status === "failed" ? "text-red-500" : "text-muted-foreground")}>
-                  {job.status === "running" ? "Running" : job.status === "completed" ? job.itemsProcessed ? `${job.itemsProcessed} found` : "Done" : job.status === "failed" ? "Failed" : "Idle"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Dark Mode */}
+      {/* Theme toggle (quick toggle; Dark no longer a nav item) */}
       <div className="p-2 border-t">
-        <Button variant="ghost" size="sm" className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")} onClick={() => setDark(!dark)}>
-          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {!collapsed && <span className="text-sm">{dark ? "Light" : "Dark"}</span>}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")} onClick={() => setDark(!dark)}>
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {!collapsed && <span className="text-sm">{dark ? "Light" : "Dark"}</span>}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Theme</TooltipContent>
+        </Tooltip>
       </div>
-
-      {/* Enroll in pilot (unlocks app download links) */}
-      {/* Pilot enrollment: only when stripped mode OFF */}
-      {!strippedMode && !isPilotEnrolled && (
-        <div className="p-2 border-t">
-          <Sheet open={pilotSheetOpen} onOpenChange={setPilotSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")}>
-                <Rocket className="h-4 w-4 shrink-0" />
-                {!collapsed && <span className="text-sm">Enroll in pilot</span>}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-              <div className="space-y-6 py-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">Enroll in the pilot</h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Unlock app download links (App Store / Google Play) for your credit union.
-                  </p>
-                </div>
-                <PilotEnrollmentForm
-                  user={authUser}
-                  embedded
-                  onSuccess={() => {
-                    refreshPilotStatus()
-                    setPilotSheetOpen(false)
-                  }}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-      )}
-
-      {/* Settings - toggle admin/unlocked mode */}
-      {!collapsed && (
-        <div className="p-2 border-t">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")}
-            onClick={() => setSettingsOpen(true)}
-          >
-            <Settings className="h-4 w-4 shrink-0" />
-            {!collapsed && <span className="text-sm">Settings</span>}
-          </Button>
-        </div>
-      )}
 
       {/* User Menu: admin-only when stripped, full when not */}
       {!collapsed && (
@@ -752,10 +820,42 @@ export function UnifiedPlatform() {
               <Input placeholder="Search config, fields, keywords..." className="h-8 shadow-none border-0 bg-muted/50" />
             </div>
             <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDark(!dark)}>
+                    {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Theme</TooltipContent>
+              </Tooltip>
               <Badge variant="outline" className="gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                 {connected}/{DATA_SOURCES.length}
               </Badge>
+              <HoverCard openDelay={200} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <Badge variant="outline" className="gap-1 cursor-default">
+                    <Activity className="h-3 w-3" />
+                    {backgroundJobs.filter((j) => j.status === "running").length}/{backgroundJobs.length}
+                  </Badge>
+                </HoverCardTrigger>
+                <HoverCardContent side="bottom" align="end" className="w-64 p-3">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Background Jobs</p>
+                  <div className="space-y-1.5">
+                    {backgroundJobs.map((job) => (
+                      <div key={job.id} className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", job.status === "running" ? "bg-blue-500 animate-pulse" : job.status === "completed" ? "bg-green-500" : job.status === "failed" ? "bg-red-500" : "bg-muted-foreground/50")} />
+                          <span className="truncate">{job.name}</span>
+                        </div>
+                        <span className={cn("text-[10px] shrink-0", job.status === "running" ? "text-blue-600 dark:text-blue-400" : job.status === "failed" ? "text-red-600 dark:text-red-400" : "text-muted-foreground")}>
+                          {job.status === "running" ? "Running" : job.status === "completed" ? (job.itemsProcessed != null ? `${job.itemsProcessed} found` : "Done") : job.status === "failed" ? "Failed" : "Idle"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8 relative">
@@ -784,13 +884,6 @@ export function UnifiedPlatform() {
               </div>
             ) : (
               <>
-                {/* LANDING - Minimal one-line typewriter, design-system background, centered */}
-                {nav === "landing" && (
-                  <div className="h-full min-h-0 flex flex-col">
-                    <MinimalLandingTypewriter className="flex-1 min-h-0" />
-                  </div>
-                )}
-
                 {/* PRODUCT SUMMARY - GitHub-style cards with Configure buttons */}
                 {nav === "summary" && (
                   <ProductSummaryDashboard 

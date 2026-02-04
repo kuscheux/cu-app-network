@@ -22,6 +22,8 @@ interface UseCreditUnionsResult {
   hasMore: boolean
   loadMore: () => void
   refresh: () => void
+  /** 'supabase' = data from DB; 'fallback' = demo list (env missing or table empty) */
+  dataSource: "supabase" | "fallback"
 }
 
 export function useCreditUnions(options: UseCreditUnionsOptions = {}): UseCreditUnionsResult {
@@ -39,6 +41,7 @@ export function useCreditUnions(options: UseCreditUnionsOptions = {}): UseCredit
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState(0)
   const [offset, setOffset] = useState(0)
+  const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback")
 
   const fetchCreditUnions = useCallback(
     async (reset = false) => {
@@ -87,7 +90,59 @@ export function useCreditUnions(options: UseCreditUnionsOptions = {}): UseCredit
         // Apply pagination
         query = query.range(currentOffset, currentOffset + limit - 1)
 
-        const { data, error: fetchError, count } = await query
+        let data: unknown[] | null = null
+        let fetchError: { message: string } | null = null
+        let count: number | null = null
+
+        const creditUnionsResult = await query
+        data = creditUnionsResult.data
+        fetchError = creditUnionsResult.error
+        count = creditUnionsResult.count
+
+        // If credit_unions table empty or missing, try ncua_credit_unions (same DB, different schema)
+        if (fetchError || !data || data.length === 0) {
+          const ncuaSelect = "charter_number, cu_name, city, state, website, total_assets, total_members, logo_url, primary_color"
+          let ncuaQuery = supabase
+            .from("ncua_credit_unions")
+            .select(ncuaSelect, { count: "exact" })
+            .eq("is_active", true)
+
+          if (search) {
+            const searchNum = parseInt(search, 10)
+            if (Number.isNaN(searchNum)) {
+              ncuaQuery = ncuaQuery.or(`cu_name.ilike.%${search}%,city.ilike.%${search}%`)
+            } else {
+              ncuaQuery = ncuaQuery.or(`cu_name.ilike.%${search}%,city.ilike.%${search}%,charter_number.eq.${searchNum}`)
+            }
+          }
+          if (state) {
+            ncuaQuery = ncuaQuery.eq("state", state.toUpperCase())
+          }
+          if (withLogosOnly) {
+            ncuaQuery = ncuaQuery.not("logo_url", "is", null)
+          }
+          const sortCol = sortBy === "cu_name" ? "cu_name" : sortBy
+          ncuaQuery = ncuaQuery.order(sortCol, { ascending: sortOrder === "asc", nullsFirst: false })
+          ncuaQuery = ncuaQuery.range(currentOffset, currentOffset + limit - 1)
+
+          const ncuaResult = await ncuaQuery
+          if (!ncuaResult.error && ncuaResult.data && ncuaResult.data.length > 0) {
+            const formattedCUs = (ncuaResult.data as Record<string, unknown>[]).map((row) =>
+              formatCreditUnionFromNcua(row)
+            )
+            setDataSource("supabase")
+            if (reset) {
+              setCreditUnions(formattedCUs)
+              setOffset(limit)
+            } else {
+              setCreditUnions((prev) => [...prev, ...formattedCUs])
+              setOffset((prev) => prev + limit)
+            }
+            setTotalCount(ncuaResult.count ?? formattedCUs.length)
+            setIsLoading(false)
+            return
+          }
+        }
 
         // If Supabase returns no data or has an error, fallback to hardcoded data
         if (fetchError || !data || (data.length === 0 && currentOffset === 0)) {
@@ -130,9 +185,11 @@ export function useCreditUnions(options: UseCreditUnionsOptions = {}): UseCredit
             setOffset((prev) => prev + limit)
           }
           setTotalCount(fallbackData.length)
+          setDataSource("fallback")
           return
         }
 
+        setDataSource("supabase")
         // Format the data from Supabase
         const formattedCUs = (data || []).map((cu) => formatCreditUnion(cu))
 
@@ -153,6 +210,7 @@ export function useCreditUnions(options: UseCreditUnionsOptions = {}): UseCredit
           setTotalCount(TOP_20_CREDIT_UNIONS.length)
           setOffset(TOP_20_CREDIT_UNIONS.length)
         }
+        setDataSource("fallback")
         setError(null) // Clear error since we have fallback data
       } finally {
         setIsLoading(false)
@@ -186,6 +244,7 @@ export function useCreditUnions(options: UseCreditUnionsOptions = {}): UseCredit
     hasMore: offset < totalCount,
     loadMore,
     refresh,
+    dataSource,
   }
 }
 
@@ -258,42 +317,44 @@ const STATE_CODES: Record<number, string> = {
   51: 'DC', 52: 'PR', 53: 'VI', 54: 'GU', 55: 'AS', 56: 'MP'
 }
 
-// Format raw Supabase data to CreditUnionData type
-function formatCreditUnion(cu: any): CreditUnionData {
-  const domain = cu.website
+// Format ncua_credit_unions row to CreditUnionData (id = cu_ + charter_number, name = cu_name, state = state code)
+function formatCreditUnionFromNcua(row: Record<string, unknown>): CreditUnionData {
+  const charter = row.charter_number != null ? String(row.charter_number) : ""
+  const id = charter ? `cu_${charter}` : "cu_unknown"
+  const name = (row.cu_name as string) || "Credit Union"
+  const stateCode = (row.state as string) || ""
+  const domain = (row.website as string)
     ?.replace(/^https?:\/\//, "")
     .replace(/^www\./, "")
     .split("/")[0]
-
-  const primaryColor = cu.primary_color || generateColorFromName(cu.name || "CU")
-  const stateCode = STATE_CODES[cu.state_id] || ""
-
-  // Clean up display name
-  const displayName = (cu.name || "Credit Union")
-    .replace(/FEDERAL CREDIT UNION$/i, 'FCU')
-    .replace(/CREDIT UNION$/i, 'CU')
-    .split(' ')
+  const primaryColor = (row.primary_color as string) || generateColorFromName(name)
+  const displayName = name
+    .replace(/FEDERAL CREDIT UNION$/i, "FCU")
+    .replace(/CREDIT UNION$/i, "CU")
+    .split(" ")
     .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ')
+    .join(" ")
+  const city = (row.city as string) || ""
+  const headquarters = city && stateCode ? `${city}, ${stateCode}` : city
 
   return {
-    id: cu.id,
+    id,
     rank: 0,
-    name: cu.name,
+    name,
     displayName,
-    charter: cu.charter?.toString() || "",
+    charter,
     routing: "",
-    assets: cu.total_assets || 0,
-    assetsFormatted: formatAssets(cu.total_assets),
-    members: cu.total_members || 0,
-    membersFormatted: formatMembers(cu.total_members),
-    headquarters: cu.city && stateCode ? `${cu.city}, ${stateCode}` : cu.city || "",
-    city: cu.city || "",
+    assets: (row.total_assets as number) ?? 0,
+    assetsFormatted: formatAssets((row.total_assets as number) ?? null),
+    members: (row.total_members as number) ?? 0,
+    membersFormatted: formatMembers((row.total_members as number) ?? null),
+    headquarters,
+    city,
     state: stateCode,
-    website: cu.website || "",
-    logoUrl: cu.logo_url || (domain ? `https://logo.clearbit.com/${domain}` : ""),
+    website: (row.website as string) || "",
+    logoUrl: (row.logo_url as string) || (domain ? `https://logo.clearbit.com/${domain}` : ""),
     logoUrls: {
-      direct: cu.logo_url,
+      direct: (row.logo_url as string) || undefined,
       brandfetch: domain ? `https://cdn.brandfetch.io/${domain}/w/400/h/400` : undefined,
       clearbit: domain ? `https://logo.clearbit.com/${domain}` : "",
       google: domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : "",
@@ -306,7 +367,69 @@ function formatCreditUnion(cu: any): CreditUnionData {
     primaryColor,
     founded: 0,
     ceo: "",
-    source: "ncua" as const,
+    source: "ncua",
+    lastUpdated: new Date().toISOString(),
+    coreBanking: {
+      provider: "Unknown",
+      platform: "Unknown",
+      confidence: 0,
+      source: "Not verified",
+      lastVerified: "",
+    },
+  }
+}
+
+// Format raw Supabase data to CreditUnionData type
+function formatCreditUnion(cu: Record<string, unknown>): CreditUnionData {
+  const website = cu.website as string | undefined
+  const domain = website
+    ?.replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0]
+
+  const name = (cu.name as string) || "Credit Union"
+  const primaryColor = (cu.primary_color as string) || generateColorFromName(name)
+  const stateCode = STATE_CODES[(cu.state_id as number)] || ""
+
+  const displayName = name
+    .replace(/FEDERAL CREDIT UNION$/i, "FCU")
+    .replace(/CREDIT UNION$/i, "CU")
+    .split(" ")
+    .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ")
+
+  const city = (cu.city as string) || ""
+  return {
+    id: cu.id as string,
+    rank: 0,
+    name,
+    displayName,
+    charter: cu.charter != null ? String(cu.charter) : "",
+    routing: "",
+    assets: (cu.total_assets as number) ?? 0,
+    assetsFormatted: formatAssets((cu.total_assets as number) ?? null),
+    members: (cu.total_members as number) ?? 0,
+    membersFormatted: formatMembers((cu.total_members as number) ?? null),
+    headquarters: city && stateCode ? `${city}, ${stateCode}` : city,
+    city,
+    state: stateCode,
+    website: website || "",
+    logoUrl: (cu.logo_url as string) || (domain ? `https://logo.clearbit.com/${domain}` : ""),
+    logoUrls: {
+      direct: cu.logo_url as string | undefined,
+      brandfetch: domain ? `https://cdn.brandfetch.io/${domain}/w/400/h/400` : undefined,
+      clearbit: domain ? `https://logo.clearbit.com/${domain}` : "",
+      google: domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : "",
+      duckduckgo: domain ? `https://icons.duckduckgo.com/ip3/${domain}.ico` : "",
+    },
+    logoDomain: domain || "",
+    logoFallbackColor: primaryColor,
+    appStoreId: null,
+    playStoreId: null,
+    primaryColor,
+    founded: 0,
+    ceo: "",
+    source: "ncua",
     lastUpdated: new Date().toISOString(),
     coreBanking: {
       provider: "Unknown",

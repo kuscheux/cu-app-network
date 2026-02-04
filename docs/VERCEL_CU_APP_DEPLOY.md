@@ -61,6 +61,20 @@ To add a real backend later, set in Vercel **Settings** → **Environment Variab
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (optional for some API routes)
 
+### Credit unions not listing (LMCU, etc.)?
+
+If you only see ~20 credit unions (demo list) and not LMCU or 4,300+ CUs from Supabase:
+
+1. **Env vars** – In Vercel (or locally in `.env.local`), set:
+   - `NEXT_PUBLIC_SUPABASE_URL` = your project URL (e.g. `https://xxxx.supabase.co`)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = anon public key from Supabase → Settings → API
+
+2. **Supabase table** – Ensure the `credit_unions` table exists and is populated (e.g. via cron/seed or migration). The app expects columns: `id`, `name`, `charter`, `city`, `state_id`, `website`, `total_assets`, `total_members`, `logo_url`, `primary_color`, `og_image_url`.
+
+3. **RLS** – If Row Level Security is on for `credit_unions`, allow `SELECT` for the `anon` role so the client can read rows.
+
+When Supabase is not configured or returns no rows, the app shows a **demo list** (TOP 20 by assets) and a banner in the CU picker: *"Demo list only. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY..."*. Fix the above to pull from the database.
+
 ---
 
 ## 0. Push to GitHub (do this first)

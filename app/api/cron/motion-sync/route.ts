@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 
-const MOTION_API_TOKEN =
-  process.env.MOTION_API_TOKEN || "74184f954587a76bc3c25c8879d514fc8fa3442c4bd2609d9309b3d9da0e5db0"
+const MOTION_API_TOKEN = process.env.MOTION_API_TOKEN
 const MOTION_API_BASE = "https://api.usemotion.com/v1"
 
 export async function GET() {
+  if (!MOTION_API_TOKEN) {
+    return NextResponse.json({ error: "MOTION_API_TOKEN not configured" }, { status: 503 })
+  }
   try {
     // Fetch workspaces
     const workspacesRes = await fetch(`${MOTION_API_BASE}/workspaces`, {

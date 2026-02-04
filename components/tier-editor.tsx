@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -45,6 +46,7 @@ import {
   PlusCircle,
   Eye,
   Save,
+  Brain,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -72,6 +74,8 @@ const FIELD_HELPERS: Record<string, string> = {
   // Tenant
   "tenant.id": "Unique identifier for this credit union in the system",
   "tenant.name": "Display name shown to members throughout the app",
+  "tenant.short_name": "Short name for headers and compact UI (e.g. Navy Fed)",
+  "tenant.tagline": "Tagline or slogan shown in app and marketing",
   "tenant.charter_number": "NCUA charter number for regulatory identification",
   "tenant.domain": "Primary web domain for the credit union",
   "tenant.timezone": "Default timezone for transaction timestamps and scheduling",
@@ -1043,36 +1047,57 @@ function renderTierContent(
     case "tenant":
       return (
         <div className="space-y-6">
-          <h4 className="font-medium text-sm">Credit Union Identity</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {renderField("Name", "tenant.name", "text")}
-            {renderField("Charter Number", "tenant.charter_number", "text")}
-            {renderField("Domain", "tenant.domain", "text")}
-            {renderField("Timezone", "tenant.timezone", "select", [
-              { value: "America/New_York", label: "Eastern" },
-              { value: "America/Chicago", label: "Central" },
-              { value: "America/Denver", label: "Mountain" },
-              { value: "America/Los_Angeles", label: "Pacific" },
-              { value: "America/Anchorage", label: "Alaska" },
-              { value: "Pacific/Honolulu", label: "Hawaii" },
-            ])}
-            {renderField("Locale", "tenant.locale", "select", [
-              { value: "en-US", label: "English (US)" },
-              { value: "es-US", label: "Spanish (US)" },
-            ])}
-          </div>
-          <Separator />
-          <h4 className="font-medium text-sm">Support Contact</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {renderField("Phone", "tenant.support.phone", "text")}
-            {renderField("Email", "tenant.support.email", "text")}
-          </div>
-          <Separator />
-          <h4 className="font-medium text-sm">Legal Entity</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {renderField("Legal Name", "tenant.legal.name", "text")}
-            {renderField("Routing Number", "tenant.legal.routing", "text")}
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Identity & Brand — fulfilled per tenant. All fields apply to this credit union only.
+          </p>
+
+          <Card className="p-4">
+            <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              Identity
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {renderField("Name", "tenant.name", "text")}
+              {renderField("Short name", "tenant.short_name", "text")}
+              {renderField("Tagline", "tenant.tagline", "text")}
+              {renderField("Charter number", "tenant.charter_number", "text")}
+              {renderField("Domain", "tenant.domain", "text")}
+              {renderField("Timezone", "tenant.timezone", "select", [
+                { value: "America/New_York", label: "Eastern" },
+                { value: "America/Chicago", label: "Central" },
+                { value: "America/Denver", label: "Mountain" },
+                { value: "America/Los_Angeles", label: "Pacific" },
+                { value: "America/Anchorage", label: "Alaska" },
+                { value: "Pacific/Honolulu", label: "Hawaii" },
+              ])}
+              {renderField("Locale", "tenant.locale", "select", [
+                { value: "en-US", label: "English (US)" },
+                { value: "es-US", label: "Spanish (US)" },
+              ])}
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              Support contact
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {renderField("Phone", "tenant.support.phone", "text")}
+              {renderField("Email", "tenant.support.email", "text")}
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
+              <FileCheck className="h-4 w-4 text-muted-foreground" />
+              Legal entity
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {renderField("Legal name", "tenant.legal.name", "text")}
+              {renderField("Routing number", "tenant.legal.routing", "text")}
+            </div>
+          </Card>
         </div>
       )
 
