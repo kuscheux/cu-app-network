@@ -9,7 +9,6 @@ import {
   Workflow,
   GitBranch,
   ChevronDown,
-  LogOut,
   Bell,
   Search,
   Moon,
@@ -37,6 +36,7 @@ import {
   Code,
   Rocket,
   Package,
+  LogOut,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -87,6 +87,8 @@ import { ScreenInspector } from "./screen-inspector"
 import { CuWordmarkBadge } from "./cu-wordmark-badge"
 import { PilotEnrollmentForm } from "./pilot-enrollment-form"
 import { AuthProvider, useAuth, type ConfigSection } from "@/lib/auth-context"
+import { useStrippedMode } from "@/lib/stripped-mode-context"
+import { SettingsDialog } from "./settings-dialog"
 import { InspectorConfigBridgeProvider } from "@/lib/inspector-config-bridge"
 import Link from "next/link"
 
@@ -185,11 +187,11 @@ function CULogo({ cu, size = "md" }: { cu: CreditUnionData; size?: "sm" | "md" |
 }
 
 type UserRole = "admin" | "employee" | "developer"
-
-const ROLES = [
-  { id: "admin" as const, name: "CU Administrator", icon: <Shield className="h-4 w-4" />, color: "bg-red-600" },
-  { id: "employee" as const, name: "Member Advocate", icon: <Users className="h-4 w-4" />, color: "bg-blue-600" },
-  { id: "developer" as const, name: "Developer", icon: <GitBranch className="h-4 w-4" />, color: "bg-emerald-600" },
+const ADMIN_LABEL = "CU Administrator"
+const ROLES: { id: UserRole; name: string; icon: React.ReactNode; color: string }[] = [
+  { id: "admin", name: "CU Administrator", icon: <Shield className="h-4 w-4" />, color: "bg-red-600" },
+  { id: "employee", name: "Member Advocate", icon: <Users className="h-4 w-4" />, color: "bg-blue-600" },
+  { id: "developer", name: "Developer", icon: <GitBranch className="h-4 w-4" />, color: "bg-emerald-600" },
 ]
 
 interface NavItem {
@@ -233,13 +235,14 @@ export function UnifiedPlatform() {
   const [mounted, setMounted] = useState(false)
   const [role, setRole] = useState<UserRole>("admin")
   const [cuConfig, setCuConfig] = useState<any>(null)
-  // Get initial view from URL params - default to summary (product overview)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  // Get initial view from URL params - default to config (Configuration UI)
   const [nav, setNav] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      return params.get('view') || "summary"
+      return params.get('view') || "config"
     }
-    return "summary"
+    return "config"
   })
   
   // Update URL when nav changes
@@ -257,7 +260,7 @@ export function UnifiedPlatform() {
     
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search)
-      const view = params.get('view') || "config"
+      const view = params.get('view') || "config" // default config
       if (view !== nav) {
         setNav(view)
       }
@@ -279,7 +282,6 @@ export function UnifiedPlatform() {
   const [cuSearchQuery, setCuSearchQuery] = useState("")
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [sidebarHoverExpanded, setSidebarHoverExpanded] = useState(false)
-  const [pilotSheetOpen, setPilotSheetOpen] = useState(false)
   const sidebarExpanded = !sidebarCollapsed || sidebarHoverExpanded
 
   const { creditUnions, isLoading: cuLoading, totalCount, hasMore, loadMore } = useCreditUnions({
@@ -289,13 +291,21 @@ export function UnifiedPlatform() {
     sortOrder: "desc",
   })
 
-  const { isPilotEnrolled, refreshPilotStatus, user: authUser, signOut: authSignOut } = useAuth()
+  const { user: authUser, isPilotEnrolled, refreshPilotStatus, signOut: authSignOut } = useAuth()
+  const { strippedMode } = useStrippedMode()
+  const [pilotSheetOpen, setPilotSheetOpen] = useState(false)
   const userEmail = authUser?.email ?? ""
   const userDisplayName = authUser?.user_metadata?.name ?? userEmail.split("@")[0] ?? "User"
   const userInitials = userDisplayName.slice(0, 2).toUpperCase()
 
+  // Default to Navy Federal when credit unions load
   useEffect(() => {
-    if (creditUnions.length > 0 && !cu) setCU(creditUnions[0])
+    if (creditUnions.length > 0 && !cu) {
+      const navyFed = creditUnions.find(
+        (c) => c.id === "cu_navy_federal" || c.displayName?.toLowerCase().includes("navy federal")
+      )
+      setCU(navyFed ?? creditUnions[0])
+    }
   }, [creditUnions, cu])
 
   // Load CU config for branding replacement
@@ -324,7 +334,7 @@ export function UnifiedPlatform() {
   }, [cu?.id])
 
   const backgroundJobs = useBackgroundJobs(cu?.charter || "")
-  const currentRole = ROLES.find((r) => r.id === role)!
+  const currentRole = ROLES.find((r) => r.id === role) ?? ROLES[0]
   const connected = DATA_SOURCES.filter((s) => s.status === "connected").length
 
   useEffect(() => setMounted(true), [])
@@ -533,7 +543,8 @@ export function UnifiedPlatform() {
       </div>
 
       {/* Enroll in pilot (unlocks app download links) */}
-      {!isPilotEnrolled && (
+      {/* Pilot enrollment: only when stripped mode OFF */}
+      {!strippedMode && !isPilotEnrolled && (
         <div className="p-2 border-t">
           <Sheet open={pilotSheetOpen} onOpenChange={setPilotSheetOpen}>
             <SheetTrigger asChild>
@@ -564,7 +575,22 @@ export function UnifiedPlatform() {
         </div>
       )}
 
-      {/* User Menu (shown when expanded; optional when no auth) */}
+      {/* Settings - toggle admin/unlocked mode */}
+      {!collapsed && (
+        <div className="p-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("w-full h-10 md:h-8", collapsed ? "justify-center px-2" : "justify-start gap-2")}
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Settings className="h-4 w-4 shrink-0" />
+            {!collapsed && <span className="text-sm">Settings</span>}
+          </Button>
+        </div>
+      )}
+
+      {/* User Menu: admin-only when stripped, full when not */}
       {!collapsed && (
         <div className="p-2 border-t">
           <DropdownMenu>
@@ -586,36 +612,45 @@ export function UnifiedPlatform() {
                 </div>
                 <div className="text-left flex-1 min-w-0">
                   <p className="text-sm font-medium leading-none truncate">{userDisplayName}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{userEmail || currentRole.name}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{userEmail || (strippedMode ? ADMIN_LABEL : currentRole.name)}</p>
                 </div>
                 <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel className="text-xs">Account</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs">{strippedMode ? "Admin" : "Account"}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="gap-2">
-                  <div className={cn("h-4 w-4 rounded flex items-center justify-center text-white", currentRole.color)}>{currentRole.icon}</div>
-                  <span>Switch Role</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    {ROLES.map((r) => (
-                      <DropdownMenuItem key={r.id} onClick={() => setRole(r.id)} className="gap-2">
-                        <div className={cn("h-4 w-4 rounded flex items-center justify-center text-white", r.color)}>{r.icon}</div>
-                        <span>{r.name}</span>
-                        {role === r.id && <CheckCircle2 className="h-3 w-3 ml-auto text-green-500" />}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-destructive" onClick={() => authSignOut()}>
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
+              {strippedMode ? (
+                <DropdownMenuItem className="gap-2 cursor-default">
+                  <Shield className="h-4 w-4 text-red-600" />
+                  <span>{ADMIN_LABEL}</span>
+                </DropdownMenuItem>
+              ) : (
+                <>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger className="gap-2">
+                      <div className={cn("h-4 w-4 rounded flex items-center justify-center text-white", currentRole.color)}>{currentRole.icon}</div>
+                      <span>Switch Role</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>
+                        {ROLES.map((r) => (
+                          <DropdownMenuItem key={r.id} onClick={() => setRole(r.id)} className="gap-2">
+                            <div className={cn("h-4 w-4 rounded flex items-center justify-center text-white", r.color)}>{r.icon}</div>
+                            <span>{r.name}</span>
+                            {role === r.id && <CheckCircle2 className="h-3 w-3 ml-auto text-green-500" />}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="gap-2 text-destructive" onClick={() => authSignOut()}>
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -810,6 +845,7 @@ export function UnifiedPlatform() {
         <AIAssistant />
       </div>
       </InspectorConfigBridgeProvider>
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </TooltipProvider>
   )
 }

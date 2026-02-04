@@ -26,7 +26,9 @@
     "db:seed": "curl -X POST http://localhost:3000/api/cron/seed-credit-unions",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

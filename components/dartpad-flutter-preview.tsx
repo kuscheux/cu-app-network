@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { useStrippedMode } from "@/lib/stripped-mode-context"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +16,7 @@ import { GOLDEN_GATE_DEFAULTS, createPassingStatus } from "@/lib/golden-gate-con
 
 interface DartPadFlutterPreviewProps {
   cu: CreditUnionData
+  /** When undefined, follows Settings → Admin / everything unlocked */
   hasPurchased?: boolean
   onPurchase?: () => void
 }
@@ -28,7 +30,9 @@ interface Branch {
   verified: boolean
 }
 
-export function DartPadFlutterPreview({ cu, hasPurchased = false, onPurchase }: DartPadFlutterPreviewProps) {
+export function DartPadFlutterPreview({ cu, hasPurchased: hasPurchasedProp, onPurchase }: DartPadFlutterPreviewProps) {
+  const { strippedMode } = useStrippedMode()
+  const hasPurchased = hasPurchasedProp ?? strippedMode
   const [showCode, setShowCode] = useState(false)
   const [currentScreen, setCurrentScreen] = useState<"splash" | "login" | "home" | "branches">("splash")
   const [verifiedBranches, setVerifiedBranches] = useState<Branch[]>([])
@@ -330,23 +334,24 @@ export function DartPadFlutterPreview({ cu, hasPurchased = false, onPurchase }: 
                 <div className={`absolute inset-0 overflow-auto p-4 font-mono text-sm text-white/90 ${!hasPurchased ? "blur-md select-none pointer-events-none" : ""}`}>
                   <pre className="whitespace-pre-wrap">{flutterCode}</pre>
                 </div>
-
                 {!hasPurchased && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="text-center max-w-md">
                       <Lock className="w-16 h-16 text-white/30 mx-auto mb-4" />
                       <h3 className="text-xl font-bold text-white mb-2">Enterprise Source Code</h3>
                       <p className="text-white/50 text-sm mb-6">
-                        Get the complete Flutter codebase with 154 production screens, Golden Gate A11y, and your CU branding pre-configured.
+                        Turn on Settings → Admin / everything unlocked to view, or purchase to unlock.
                       </p>
-                      <Button
-                        size="lg"
-                        className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold"
-                        onClick={onPurchase}
-                      >
-                        <Download className="w-5 h-5 mr-2" />
-                        Purchase for $50,000
-                      </Button>
+                      {onPurchase && (
+                        <Button
+                          size="lg"
+                          className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold"
+                          onClick={onPurchase}
+                        >
+                          <Download className="w-5 h-5 mr-2" />
+                          Purchase for $50,000
+                        </Button>
+                      )}
                     </div>
                   </div>
                 )}

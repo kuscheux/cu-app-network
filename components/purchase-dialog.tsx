@@ -28,22 +28,14 @@ export function PurchaseDialog({
   // Check if user is admin (bypass paywall)
   const isAdmin = userEmail && ADMIN_EMAILS.includes(userEmail.toLowerCase())
 
+  // STRIPE COMMENTED OUT - checkout disabled
   async function handlePurchase() {
     setLoading(true)
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: SOURCE_CODE_PRODUCT.id,
-          creditUnionName,
-        }),
-      })
-
-      const { url } = await res.json()
-      if (url) {
-        window.location.href = url
-      }
+      // const res = await fetch("/api/stripe/checkout", { method: "POST", ... })
+      // const { url } = await res.json(); if (url) window.location.href = url
+      onPurchaseSuccess?.()
+      onOpenChange(false)
     } catch (error) {
       console.error("Checkout error:", error)
     } finally {

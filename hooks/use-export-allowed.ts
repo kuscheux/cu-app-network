@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useStrippedMode } from "@/lib/stripped-mode-context"
 
 export interface ExportAllowedState {
   allowed: boolean
@@ -11,15 +12,22 @@ export interface ExportAllowedState {
 
 /**
  * Returns whether export is allowed for the given tenant.
- * Export is allowed only when the user has confirmed their email and
- * their email is at the tenant's verified credit union domain (or they have a verified claim).
+ * When Settings > "Admin / everything unlocked" is ON, always allowed.
+ * Otherwise: export allowed only when user has confirmed email and tenant claim/domain.
  */
 export function useExportAllowed(tenantId: string | null): ExportAllowedState {
-  const [allowed, setAllowed] = useState(false)
+  const { strippedMode } = useStrippedMode()
+  const [allowed, setAllowed] = useState(strippedMode)
   const [reason, setReason] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!strippedMode)
 
   const fetchAllowed = useCallback(async () => {
+    if (strippedMode) {
+      setAllowed(true)
+      setReason(null)
+      setLoading(false)
+      return
+    }
     if (!tenantId) {
       setAllowed(false)
       setReason("Confirm your email at your credit union's verified domain to export.")
@@ -38,11 +46,16 @@ export function useExportAllowed(tenantId: string | null): ExportAllowedState {
     } finally {
       setLoading(false)
     }
-  }, [tenantId])
+  }, [tenantId, strippedMode])
 
   useEffect(() => {
     fetchAllowed()
   }, [fetchAllowed])
 
-  return { allowed, reason, loading, refetch: fetchAllowed }
+  return {
+    allowed: strippedMode ? true : allowed,
+    reason: strippedMode ? null : reason,
+    loading: strippedMode ? false : loading,
+    refetch: fetchAllowed,
+  }
 }

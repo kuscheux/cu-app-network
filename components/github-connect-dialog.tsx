@@ -25,8 +25,9 @@ import {
   Copy,
 } from "lucide-react"
 import { toast } from "sonner"
-import { checkGitHubCloneAccess } from "@/app/actions/stripe"
-import { StripeCheckoutDialog } from "./stripe-checkout-dialog"
+// STRIPE COMMENTED OUT - access always allowed
+// import { checkGitHubCloneAccess } from "@/app/actions/stripe"
+// import { StripeCheckoutDialog } from "./stripe-checkout-dialog"
 import { Lock } from "lucide-react"
 
 interface GitHubConnectDialogProps {
@@ -58,39 +59,17 @@ export function GitHubConnectDialog({ open, onOpenChange, cuConfig }: GitHubConn
   const [connectionMode, setConnectionMode] = useState<"standard" | "monorepo" | "link">("standard")
   const [monorepoPath, setMonorepoPath] = useState("packages/flutter-app")
   const [repoUrl, setRepoUrl] = useState("")
-  const [hasAccess, setHasAccess] = useState(false)
-  const [planName, setPlanName] = useState<string>()
-  const [checkingAccess, setCheckingAccess] = useState(true)
-  const [showStripeDialog, setShowStripeDialog] = useState(false)
-
-  useEffect(() => {
-    async function checkAccess() {
-      setCheckingAccess(true)
-      const result = await checkGitHubCloneAccess()
-      setHasAccess(result.hasAccess)
-      setPlanName(result.planName)
-      setCheckingAccess(false)
-    }
-    if (open) {
-      checkAccess()
-    }
-  }, [open])
+  const [hasAccess] = useState(true)
+  const [planName] = useState<string | undefined>(undefined)
+  const [checkingAccess] = useState(false)
+  // STRIPE COMMENTED OUT: showStripeDialog removed
 
   const handleOpenDialog = () => {
-    if (!hasAccess) {
-      setShowStripeDialog(true)
-      return
-    }
+    // Stripe disabled - always allow
     // Existing logic to open GitHub connect flow
   }
 
-  const handleSubscriptionSuccess = async () => {
-    setShowStripeDialog(false)
-    // Recheck access
-    const result = await checkGitHubCloneAccess()
-    setHasAccess(result.hasAccess)
-    setPlanName(result.planName)
-  }
+  // const handleSubscriptionSuccess = async () => { ... }
 
   // Simulated GitHub OAuth flow
   async function handleGitHubConnect() {
@@ -675,11 +654,7 @@ export function GitHubConnectDialog({ open, onOpenChange, cuConfig }: GitHubConn
         </Dialog>
       )}
 
-      <StripeCheckoutDialog
-        open={showStripeDialog}
-        onOpenChange={setShowStripeDialog}
-        onSuccess={handleSubscriptionSuccess}
-      />
+      {/* STRIPE COMMENTED OUT - StripeCheckoutDialog removed */}
     </>
   )
 }

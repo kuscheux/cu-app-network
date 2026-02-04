@@ -1,15 +1,10 @@
 import "server-only"
 
-import Stripe from "stripe"
-
-// Only initialize Stripe if the secret key is available
-export const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY)
-  : null
-
-export function getStripe(): Stripe {
-  if (!stripe) {
-    throw new Error("Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.")
-  }
-  return stripe
+// STRIPE COMMENTED OUT - no payments/checkout
+// import Stripe from "stripe"
+// export const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null
+export const stripe = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getStripe(): any {
+  throw new Error("Stripe is disabled. Re-enable in lib/stripe.ts if needed.")
 }

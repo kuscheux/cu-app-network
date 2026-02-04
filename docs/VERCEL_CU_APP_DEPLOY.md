@@ -4,6 +4,49 @@ Get this project live at **cu.app** using a new Vercel project. Domain is at GoD
 
 ---
 
+## Quick: Deploy config matrix to existing project (zero env vars)
+
+Deploy **this config matrix builder only** to your existing Vercel project and see it live **without setting 300 env variables**. The app runs with fallback/mock data when Supabase (and other) env vars are missing.
+
+**Vercel project ID:** `prj_0YRJPl6JvHZL1EBxgn1Ihl9D7GlT`
+
+### One-time: link this repo to that project
+
+From the project root:
+
+```bash
+cd /path/to/configuration-matrix-build
+npx vercel link --project prj_0YRJPl6JvHZL1EBxgn1Ihl9D7GlT
+```
+
+When prompted, choose your **Vercel team/org** and confirm the project name. This writes `.vercel/project.json` so future deploys go to this project.
+
+### Deploy (production)
+
+```bash
+npm run deploy
+```
+
+Or:
+
+```bash
+npx vercel --prod
+```
+
+**No env vars required.** The app will:
+
+- Build and run with **zero** environment variables.
+- Use built-in fallback data (e.g. TOP 20 credit unions, Navy Federal default) when Supabase is not configured.
+- Show the full config UI; use **Settings** → **Admin / everything unlocked** to test without login/roles.
+
+To add a real backend later, set in Vercel **Settings** → **Environment Variables**:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (optional for some API routes)
+
+---
+
 ## 0. Push to GitHub (do this first)
 
 The project is already initialized with git and one commit. To push to GitHub:

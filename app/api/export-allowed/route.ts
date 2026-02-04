@@ -4,12 +4,9 @@ import { createAdminClient } from "@/lib/supabase/server"
 
 /**
  * GET /api/export-allowed?tenantId=...
- * Returns whether the current user is allowed to export config for this tenant.
- * Export is allowed only when:
- * 1. User is signed in and their email is confirmed (Supabase email_confirmed_at).
- * 2. For this tenant, either:
- *    - tenant_claims has a verified claim for this user's email (status = 'verified'), or
- *    - cu_email_domains has a verified domain for this tenant and the user's email domain matches.
+ * When Settings > "Admin / everything unlocked" is ON, client uses stripped mode and does not gate.
+ * When OFF, this API runs: export allowed only when user signed in, email confirmed, and
+ * tenant_claims verified or cu_email_domains matches.
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
@@ -39,7 +36,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       )
     }
 
-    // Require Supabase email confirmation (email_confirmed_at is set after verification)
     const emailConfirmedAt = (user as { email_confirmed_at?: string | null }).email_confirmed_at
     if (!emailConfirmedAt) {
       return NextResponse.json(
@@ -51,7 +47,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const charter = tenantId.replace(/^cu_/, "")
     const admin = createAdminClient()
 
-    // 1. Check tenant_claims: verified claim for this email + tenant
     const { data: claim } = await admin
       .from("tenant_claims")
       .select("id, status")
@@ -64,7 +59,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ allowed: true }, { status: 200 })
     }
 
-    // 2. Check cu_email_domains: tenant has verified domain matching user's email domain
     const userDomain = email.includes("@") ? (email.split("@")[1] ?? "").toLowerCase() : ""
     if (!userDomain) {
       return NextResponse.json(

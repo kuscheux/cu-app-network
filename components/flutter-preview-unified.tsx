@@ -13,6 +13,7 @@ import { DEFAULT_CU_CONFIG } from "@/lib/cu-config-defaults"
 import { IPhoneDeviceFrame } from "./iphone-device-frame"
 import { PurchaseDialog } from "./purchase-dialog"
 import { ADMIN_EMAILS } from "@/lib/products"
+import { useStrippedMode } from "@/lib/stripped-mode-context"
 
 interface FlutterPreviewUnifiedProps {
   cu: CreditUnionData
@@ -151,9 +152,9 @@ export function FlutterPreviewUnified({ cu, config, userEmail }: FlutterPreviewU
   const [purchaseOpen, setPurchaseOpen] = useState(false)
   const [isPurchased, setIsPurchased] = useState(false)
 
-  // Check if admin or purchased
+  const { strippedMode } = useStrippedMode()
   const isAdmin = userEmail && ADMIN_EMAILS.includes(userEmail.toLowerCase())
-  const hasAccess = isAdmin || isPurchased
+  const hasAccess = strippedMode || isAdmin || isPurchased
 
   const c = config || DEFAULT_CU_CONFIG
 
@@ -479,21 +480,19 @@ final routerProvider = Provider<GoRouter>((ref) {
                 </Button>
               </div>
 
-              {/* Code Content with Blur Overlay */}
+              {/* Code Content - blur when !hasAccess (toggle off in Settings) */}
               <div className="flex-1 relative overflow-hidden">
                 <ScrollArea className="h-full">
                   <pre className={cn("p-4 text-xs font-mono leading-relaxed", !hasAccess && "select-none")}>
                     <code>{generatedCode}</code>
                   </pre>
                 </ScrollArea>
-
-                {/* Blur Paywall Overlay */}
                 {!hasAccess && (
                   <div className="absolute inset-0 backdrop-blur-md bg-background/60 flex flex-col items-center justify-center">
                     <Lock className="h-12 w-12 text-muted-foreground mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Source Code Locked</h3>
                     <p className="text-sm text-muted-foreground text-center max-w-xs mb-4">
-                      Purchase the complete source code package to unlock full access
+                      Turn on Settings → Admin / everything unlocked to view, or purchase to unlock.
                     </p>
                     <Button onClick={() => setPurchaseOpen(true)}>Unlock for $50,000</Button>
                   </div>
