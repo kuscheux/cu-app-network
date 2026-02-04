@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { Download, FileJson, FileText, Check } from "lucide-react"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -184,10 +185,12 @@ export function ExportDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleExport} disabled={!config || locked}>
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
+          <LockedDownloadOverlay locked={locked}>
+            <Button onClick={handleExport} disabled={!config || locked}>
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+          </LockedDownloadOverlay>
         </DialogFooter>
       </DialogContent>
     </Dialog>

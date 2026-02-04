@@ -13,6 +13,7 @@ import {
   getTotalLinesOfCode,
 } from "@/lib/feature-catalog"
 import { Package, Download, Code } from "lucide-react"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   core: Package,
@@ -116,10 +117,12 @@ export function FeatureCatalog({ cuId, cuName, cuPrefix }: FeatureCatalogProps) 
             <div className="text-2xl font-bold">{selectedFeatures.size} features</div>
             <div className="text-xs text-muted-foreground">{totalLOC.toLocaleString()} LOC</div>
           </div>
-          <Button onClick={handleClone} disabled={loading || selectedFeatures.size === 0} size="lg">
-            <Download className="h-4 w-4 mr-2" />
-            {loading ? "Preparing…" : "Clone selected"}
-          </Button>
+          <LockedDownloadOverlay locked>
+            <Button onClick={handleClone} disabled size="lg">
+              <Download className="h-4 w-4 mr-2" />
+              Clone selected
+            </Button>
+          </LockedDownloadOverlay>
         </div>
       </div>
 

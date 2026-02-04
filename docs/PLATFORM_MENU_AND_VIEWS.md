@@ -18,9 +18,10 @@ No login gate — all views are available as soon as a credit union is selected.
 |---|----|------|-------|-------------|
 | 1 | summary | Product Summary | NEW | All features at a glance with Configure buttons |
 | 2 | config | Configuration | — | 16-tier config editor (Identity, Design Tokens, Features, IVR, Products, Rules, Fraud, Compliance, Integrations, Channels, Notifications, Content, UX, AI, Deployment, PowerOn) |
-| 3 | dual-studio | Dual Studio | cu_ui | Two Flutter apps side by side — Design System + Live Preview |
-| 4 | design-system | Design System | cu_ui | Complete Flutter UI design system |
-| 5 | preview | App Preview | — | Live Flutter mobile preview with cu_ui components |
+| 3 | app-studio | App Studio | cu_ui | Layout UI for internal and member-facing apps — Design System + Live Preview side by side |
+| 4 | call-center | Call Center | IVR | Call center UI and IVR — Lobby, caller context, member lookup; aligned with config |
+| 5 | design-system | Design System | cu_ui | Complete Flutter UI design system |
+| 6 | preview | App Preview | — | Live Flutter mobile preview with cu_ui components |
 | 6 | gallery | CU Gallery | 4,300+ | All 4,300+ credit unions (link to /gallery) |
 | 7 | status | Status | — | Overview dashboard with stats |
 | 8 | profile | CU Profile | — | Credit union profile and branding |
@@ -49,7 +50,8 @@ Then in sidebar: **Background Jobs**, **Dark Mode**, **Enroll in pilot** (if not
 
 - **summary** → `ProductSummaryDashboard`
 - **config** → `CUConfigDashboard`
-- **dual-studio** → `DualFlutterStudioShell`
+- **app-studio** → `DualFlutterStudioShell` (App Studio)
+- **call-center** → `CallCenterView` (Lobby + IVR tabs)
 - **design-system** → `DesignSystemView` (AppBuilderStudio full)
 - **preview** → `AppPreviewView` (AppBuilderStudio preview)
 - **status** → `StatusView`

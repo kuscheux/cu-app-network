@@ -61,6 +61,7 @@ import {
 } from "lucide-react"
 import type { CreditUnionData } from "@/lib/credit-union-data"
 import { useExportAllowed } from "@/hooks/use-export-allowed"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 
 // ============================================================================
 // TYPES
@@ -1001,39 +1002,45 @@ export function ConfigStudio({ cu, onSave }: ConfigStudioProps) {
             {saved ? 'Saved!' : errorCount > 0 ? `Fix ${errorCount} Error${errorCount > 1 ? 's' : ''} to Save` : 'Save Configuration'}
           </Button>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs"
-              disabled={!exportAllowed}
-              title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-              onClick={() => exportConfig(config, 'json')}
-            >
-              <FileJson className="h-3 w-3 mr-1" />
-              JSON
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs"
-              disabled={!exportAllowed}
-              title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-              onClick={() => exportConfig(config, 'dart')}
-            >
-              <Code className="h-3 w-3 mr-1" />
-              Dart
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs"
-              disabled={!exportAllowed}
-              title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-              onClick={() => exportConfig(config, 'ts')}
-            >
-              <Code className="h-3 w-3 mr-1" />
-              TS
-            </Button>
+            <LockedDownloadOverlay locked={!exportAllowed}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                disabled={!exportAllowed}
+                title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+                onClick={() => exportConfig(config, 'json')}
+              >
+                <FileJson className="h-3 w-3 mr-1" />
+                JSON
+              </Button>
+            </LockedDownloadOverlay>
+            <LockedDownloadOverlay locked={!exportAllowed}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                disabled={!exportAllowed}
+                title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+                onClick={() => exportConfig(config, 'dart')}
+              >
+                <Code className="h-3 w-3 mr-1" />
+                Dart
+              </Button>
+            </LockedDownloadOverlay>
+            <LockedDownloadOverlay locked={!exportAllowed}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs"
+                disabled={!exportAllowed}
+                title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+                onClick={() => exportConfig(config, 'ts')}
+              >
+                <Code className="h-3 w-3 mr-1" />
+                TS
+              </Button>
+            </LockedDownloadOverlay>
           </div>
         </div>
       </div>

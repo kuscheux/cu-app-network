@@ -24,6 +24,7 @@ import {
   Loader2,
   Download,
 } from "lucide-react"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 
 interface CreditUnionProfile {
   id: string
@@ -386,9 +387,11 @@ export function CUProfileCard({ creditUnionId, charter }: { creditUnionId?: stri
                     )}
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-xs text-muted-foreground">{logo.source}</span>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                        <Download className="w-3 h-3" />
-                      </Button>
+                      <LockedDownloadOverlay locked>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" disabled>
+                          <Download className="w-3 h-3" />
+                        </Button>
+                      </LockedDownloadOverlay>
                     </div>
                   </CardContent>
                 </Card>

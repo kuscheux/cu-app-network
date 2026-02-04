@@ -36,6 +36,7 @@ import {
 import { toast } from "sonner"
 import { ExportDialog } from "./export-dialog"
 import { TierEditor } from "./tier-editor"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 import { useExportAllowed } from "@/hooks/use-export-allowed"
 import { useInspectorConfigBridge } from "@/lib/inspector-config-bridge"
 import type { CreditUnionData } from "@/lib/credit-union-data"
@@ -424,17 +425,19 @@ export function CUConfigDashboard({ selectedCU }: CUConfigDashboardProps) {
               <RotateCcw className="h-4 w-4 md:mr-1.5" />
               <span className="hidden md:inline">Reset</span>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setExportOpen(true)}
-              disabled={!exportAllowed}
-              title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-              className="h-10 md:h-8 bg-transparent"
-            >
-              <Download className="h-4 w-4 md:mr-1.5" />
-              <span className="hidden md:inline">Export</span>
-            </Button>
+            <LockedDownloadOverlay locked={!exportAllowed}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setExportOpen(true)}
+                disabled={!exportAllowed}
+                title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+                className="h-10 md:h-8 bg-transparent"
+              >
+                <Download className="h-4 w-4 md:mr-1.5" />
+                <span className="hidden md:inline">Export</span>
+              </Button>
+            </LockedDownloadOverlay>
             <Button variant="outline" size="sm" onClick={saveConfig} disabled={!hasChanges || saving} className="h-10 md:h-8 bg-transparent">
               <Save className="h-4 w-4 md:mr-1.5" />
               <span className="hidden sm:inline">{saving ? "Saving..." : "Save"}</span>

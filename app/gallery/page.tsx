@@ -21,6 +21,7 @@ import {
   DollarSign,
 } from "lucide-react"
 import Link from "next/link"
+import { LockedDownloadOverlay } from "@/components/locked-download-overlay"
 
 interface CUConfig {
   charter: number
@@ -317,26 +318,27 @@ export default function GalleryPage() {
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Button
-                variant="outline"
-                className="bg-transparent border-white/20 text-white"
-                disabled={!exportAllowed}
-                title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-                onClick={() => {
-                  // Download all configs as JSON
-                  const blob = new Blob([JSON.stringify(configs, null, 2)], {
-                    type: "application/json",
-                  })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement("a")
-                  a.href = url
-                  a.download = "cu-configs-batch.json"
-                  a.click()
-                }}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export All
-              </Button>
+              <LockedDownloadOverlay locked={!exportAllowed}>
+                <Button
+                  variant="outline"
+                  className="bg-transparent border-white/20 text-white"
+                  disabled={!exportAllowed}
+                  title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+                  onClick={() => {
+                    const blob = new Blob([JSON.stringify(configs, null, 2)], {
+                      type: "application/json",
+                    })
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = "cu-configs-batch.json"
+                    a.click()
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export All
+                </Button>
+              </LockedDownloadOverlay>
             </div>
           </div>
         )}

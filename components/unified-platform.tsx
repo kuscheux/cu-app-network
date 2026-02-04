@@ -37,6 +37,7 @@ import {
   Rocket,
   Package,
   LogOut,
+  Phone,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -83,6 +84,9 @@ import { useCreditUnions } from "@/hooks/use-credit-unions"
 import { FlutterPreview } from "./flutter-preview-simple"
 import { AppBuilderStudio } from "./app-builder-studio"
 import { DualFlutterStudioShell } from "./dual-flutter-studio-shell"
+import { CallCenterView } from "./call-center-view"
+import { SchemaMapView } from "./schema-map-view"
+import { MinimalLandingTypewriter } from "./minimal-landing-typewriter"
 import { ScreenInspector } from "./screen-inspector"
 import { CuWordmarkBadge } from "./cu-wordmark-badge"
 import { PilotEnrollmentForm } from "./pilot-enrollment-form"
@@ -207,7 +211,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: "summary", name: "Product Summary", icon: <Layers className="h-4 w-4" />, route: "/?view=summary", badge: "NEW", description: "All features at a glance with Configure buttons - PowerOn, Enrichment, FDX, Reviews, CI/CD, Team" },
   { id: "config", name: "Configuration", icon: <Settings className="h-4 w-4" />, route: "/?view=config", description: "Exhaustive 16-tier config editor (Identity, Design Tokens, Features, IVR, Products, Rules, Fraud, Compliance, Integrations, Channels, Notifications, Content, UX, AI, Deployment, PowerOn)" },
-  { id: "dual-studio", name: "Dual Studio", icon: <Layers className="h-4 w-4" />, route: "/?view=dual-studio", badge: "cu_ui", description: "Two Flutter apps side by side — Design System + Live Preview (top nav visible on load)" },
+  { id: "app-studio", name: "App Studio", icon: <Layers className="h-4 w-4" />, route: "/?view=app-studio", badge: "cu_ui", description: "Layout UI for internal and member-facing apps — Design System + Live Preview side by side" },
+  { id: "call-center", name: "Call Center", icon: <Phone className="h-4 w-4" />, route: "/?view=call-center", badge: "IVR", description: "Call center UI and IVR — Lobby, caller context, member lookup; aligned with config" },
   { id: "design-system", name: "Design System", icon: <Sparkles className="h-4 w-4" />, route: "/?view=design-system", badge: "cu_ui", description: "Complete Flutter UI design system - 50+ components, screens, tokens, light/dark themes" },
   { id: "preview", name: "App Preview", icon: <Smartphone className="h-4 w-4" />, route: "/?view=preview", description: "Live Flutter mobile preview with cu_ui components" },
   { id: "gallery", name: "CU Gallery", icon: <Building2 className="h-4 w-4" />, href: "/gallery", route: "/gallery", badge: "4,300+", description: "All 4,300+ credit unions" },
@@ -218,11 +223,12 @@ const NAV_ITEMS: NavItem[] = [
   { id: "mapping", name: "Field Mapping", icon: <Table2 className="h-4 w-4" />, route: "/?view=mapping", description: "Map PowerOn fields to app config" },
   { id: "tokens", name: "Design Tokens", icon: <Sparkles className="h-4 w-4" />, route: "/?view=tokens", badge: "CU UI", description: "cu_ui design system tokens" },
   { id: "apps", name: "App Reviews", icon: <Star className="h-4 w-4" />, route: "/?view=apps", description: "App Store reviews" },
-  { id: "support", name: "Member Support", icon: <Users className="h-4 w-4" />, badge: "3", route: "/?view=support", description: "Support queue and IVR logs" },
+  { id: "support", name: "Member Support", icon: <Users className="h-4 w-4" />, badge: "3", route: "/?view=support", description: "Support queue (see Call Center for Lobby + IVR)" },
   { id: "github", name: "GitHub CI/CD", icon: <GitBranch className="h-4 w-4" />, route: "/?view=github", description: "GitHub sync and deployment" },
   { id: "launch", name: "Business Launch", icon: <Rocket className="h-4 w-4" />, route: "/?view=launch", badge: "7", description: "Complete launch checklist - Infrastructure, databases, integrations, mobile build, testing, go-live" },
   { id: "rules", name: "Rule Builder", icon: <Workflow className="h-4 w-4" />, href: "/rules", route: "/rules", description: "Visual business rules builder" },
   { id: "sources", name: "Data Sources", icon: <Database className="h-4 w-4" />, route: "/?view=sources", description: "Connected integrations" },
+  { id: "schema-map", name: "Schema Map", icon: <Table2 className="h-4 w-4" />, route: "/?view=schema-map", badge: "700+", description: "Supabase tables mapped to configurable fields in omnichannel (IVR, Mobile, Web, Chat)" },
   { id: "uat", name: "UAT Testing", icon: <TestTube className="h-4 w-4" />, route: "/?view=uat", badge: "31", description: "User Acceptance Testing - Test suites and results" },
   { id: "omnichannel", name: "Omnichannel", icon: <Layers className="h-4 w-4" />, route: "/?view=omnichannel", badge: "ALL", description: "THE OMNICHANNEL SYSTEM - All channels unified: IVR, Mobile, Web, Chat working as ONE experience" },
   { id: "marketing", name: "Marketing Site", icon: <Globe2 className="h-4 w-4" />, route: "/?view=marketing", badge: "CMS", description: "Edit and preview your credit union's marketing website - Full CMS with pages, media library, and instant publishing" },
@@ -236,13 +242,13 @@ export function UnifiedPlatform() {
   const [role, setRole] = useState<UserRole>("admin")
   const [cuConfig, setCuConfig] = useState<any>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  // Get initial view from URL params - default to config (Configuration UI)
+  // Get initial view from URL params - default to landing (minimal typewriter)
   const [nav, setNav] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      return params.get('view') || "config"
+      return params.get('view') || "landing"
     }
-    return "config"
+    return "landing"
   })
   
   // Update URL when nav changes
@@ -260,7 +266,7 @@ export function UnifiedPlatform() {
     
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search)
-      const view = params.get('view') || "config" // default config
+      const view = params.get('view') || "landing"
       if (view !== nav) {
         setNav(view)
       }
@@ -280,7 +286,7 @@ export function UnifiedPlatform() {
   // For now, we use a simple state that can be toggled
   const [showCuPicker, setShowCuPicker] = useState(true) // true = superadmin view, false = tenant view
   const [cuSearchQuery, setCuSearchQuery] = useState("")
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [sidebarHoverExpanded, setSidebarHoverExpanded] = useState(false)
   const sidebarExpanded = !sidebarCollapsed || sidebarHoverExpanded
 
@@ -356,7 +362,7 @@ export function UnifiedPlatform() {
   }, [dark])
 
   const handleBridgeNavigate = useCallback(
-    (view: "config" | "screen-inspector" | "dual-studio", _screenId?: string | null, _tierId?: string | null) => {
+    (view: "config" | "screen-inspector" | "app-studio", _screenId?: string | null, _tierId?: string | null) => {
       setNav(view)
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href)
@@ -778,7 +784,14 @@ export function UnifiedPlatform() {
               </div>
             ) : (
               <>
-                {/* PRODUCT SUMMARY - GitHub-style cards with Configure buttons (NEW DEFAULT) */}
+                {/* LANDING - Minimal one-line typewriter, design-system background, centered */}
+                {nav === "landing" && (
+                  <div className="h-full min-h-0 flex flex-col">
+                    <MinimalLandingTypewriter className="flex-1 min-h-0" />
+                  </div>
+                )}
+
+                {/* PRODUCT SUMMARY - GitHub-style cards with Configure buttons */}
                 {nav === "summary" && (
                   <ProductSummaryDashboard 
                     cu={cu} 
@@ -807,8 +820,9 @@ export function UnifiedPlatform() {
                 {/* CONFIGURATION - Exhaustive 16-tier editor (default home) */}
                 {nav === "config" && <CUConfigDashboard selectedCU={cu} />}
 
-                {/* DUAL STUDIO - Two Flutter apps side by side, top nav visible on first load */}
-                {nav === "dual-studio" && <DualFlutterStudioShell cu={cu} />}
+                {/* APP STUDIO - Layout UI for all apps, Design System + Live Preview */}
+                {nav === "app-studio" && <DualFlutterStudioShell cu={cu} />}
+                {nav === "call-center" && <CallCenterView cu={cu} />}
                 {/* DESIGN SYSTEM - Full cu_ui Flutter design system showcase */}
                 {nav === "design-system" && <DesignSystemView cu={cu} />}
 
@@ -824,6 +838,7 @@ export function UnifiedPlatform() {
                 {nav === "github" && <GitHubView cu={cu} onConnectGitHub={() => setGithubOpen(true)} />}
                 {nav === "launch" && <BusinessLaunchChecklist cu={cu} />}
                 {nav === "sources" && <SourcesView />}
+                {nav === "schema-map" && <SchemaMapView cu={cu} onNavigateToConfig={() => setNav("config")} />}
                 {nav === "uat" && <UATView cu={cu} />}
                 {nav === "omnichannel" && <OmnichannelArchitecture cu={cu} />}
                 {nav === "marketing" && <MarketingSitePreview cu={cu} />}

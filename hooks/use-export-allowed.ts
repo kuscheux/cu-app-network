@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from "react"
 import { useStrippedMode } from "@/lib/stripped-mode-context"
 
+/** When true, all download/export buttons are locked with overlay + "Workin on it" hover. */
+const DOWNLOADS_LOCKED = true
+
 export interface ExportAllowedState {
   allowed: boolean
   reason: string | null
@@ -12,7 +15,8 @@ export interface ExportAllowedState {
 
 /**
  * Returns whether export is allowed for the given tenant.
- * When Settings > "Admin / everything unlocked" is ON, always allowed.
+ * When DOWNLOADS_LOCKED is true, always returns allowed: false, reason: "Workin on it".
+ * When Settings > "Admin / everything unlocked" is ON (and not locked), always allowed.
  * Otherwise: export allowed only when user has confirmed email and tenant claim/domain.
  */
 export function useExportAllowed(tenantId: string | null): ExportAllowedState {
@@ -51,6 +55,15 @@ export function useExportAllowed(tenantId: string | null): ExportAllowedState {
   useEffect(() => {
     fetchAllowed()
   }, [fetchAllowed])
+
+  if (DOWNLOADS_LOCKED) {
+    return {
+      allowed: false,
+      reason: "Workin on it",
+      loading: false,
+      refetch: () => {},
+    }
+  }
 
   return {
     allowed: strippedMode ? true : allowed,

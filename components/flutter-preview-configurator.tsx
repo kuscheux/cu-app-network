@@ -44,6 +44,7 @@ import {
 } from "lucide-react"
 import type { CreditUnionData } from "@/lib/credit-union-data"
 import { useExportAllowed } from "@/hooks/use-export-allowed"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 
 interface FlutterPreviewConfiguratorProps {
   cu: CreditUnionData
@@ -668,39 +669,45 @@ export const tenantConfig = {
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              disabled={!exportAllowed}
-              title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-              onClick={() => handleExport('json')}
-            >
-              <FileJson className="h-3 w-3 mr-1" />
-              JSON
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              disabled={!exportAllowed}
-              title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-              onClick={() => handleExport('dart')}
-            >
-              <Code className="h-3 w-3 mr-1" />
-              Dart
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              disabled={!exportAllowed}
-              title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-              onClick={() => handleExport('ts')}
-            >
-              <Code className="h-3 w-3 mr-1" />
-              TS
-            </Button>
+            <LockedDownloadOverlay locked={!exportAllowed}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                disabled={!exportAllowed}
+                title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+                onClick={() => handleExport('json')}
+              >
+                <FileJson className="h-3 w-3 mr-1" />
+                JSON
+              </Button>
+            </LockedDownloadOverlay>
+            <LockedDownloadOverlay locked={!exportAllowed}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                disabled={!exportAllowed}
+                title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+                onClick={() => handleExport('dart')}
+              >
+                <Code className="h-3 w-3 mr-1" />
+                Dart
+              </Button>
+            </LockedDownloadOverlay>
+            <LockedDownloadOverlay locked={!exportAllowed}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                disabled={!exportAllowed}
+                title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+                onClick={() => handleExport('ts')}
+              >
+                <Code className="h-3 w-3 mr-1" />
+                TS
+              </Button>
+            </LockedDownloadOverlay>
             <Button variant="outline" size="sm" onClick={handleCopyConfig}>
               {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             </Button>

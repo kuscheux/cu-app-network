@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react"
 
-export type BridgeView = "config" | "screen-inspector" | "dual-studio"
+export type BridgeView = "config" | "screen-inspector" | "app-studio"
 
 export interface InspectorConfigBridgeState {
   /** Currently selected MX screen id (e.g. dashboard, accounts) — shared by Inspector and Config */

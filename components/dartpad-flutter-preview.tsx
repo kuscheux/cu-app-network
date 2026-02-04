@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AppFlowArchitecture } from "./app-flow-architecture"
 import { BranchVerificationPanel } from "./branch-verification-panel"
 import { CULogoImage, CULogoWithBackground } from "./cu-logo-image"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 import type { CreditUnionData } from "@/lib/credit-union-data"
 import type { A11yLevel, GoldenGateStatus } from "@/lib/golden-gate-config"
 import { GOLDEN_GATE_DEFAULTS, createPassingStatus } from "@/lib/golden-gate-config"
@@ -343,14 +344,17 @@ export function DartPadFlutterPreview({ cu, hasPurchased: hasPurchasedProp, onPu
                         Turn on Settings → Admin / everything unlocked to view, or purchase to unlock.
                       </p>
                       {onPurchase && (
-                        <Button
-                          size="lg"
-                          className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold"
-                          onClick={onPurchase}
-                        >
-                          <Download className="w-5 h-5 mr-2" />
-                          Purchase for $50,000
-                        </Button>
+                        <LockedDownloadOverlay locked>
+                          <Button
+                            size="lg"
+                            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold"
+                            onClick={onPurchase}
+                            disabled
+                          >
+                            <Download className="w-5 h-5 mr-2" />
+                            Purchase for $50,000
+                          </Button>
+                        </LockedDownloadOverlay>
                       )}
                     </div>
                   </div>

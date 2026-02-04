@@ -36,6 +36,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { CreditUnionData } from "@/lib/credit-union-data"
+import { LockedDownloadOverlay } from "@/components/locked-download-overlay"
 
 interface CUWebsiteTemplateProps {
   cu: CreditUnionData
@@ -457,18 +458,22 @@ export function CUWebsiteTemplate({ cu }: CUWebsiteTemplateProps) {
               </ul>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button variant="outline" className="gap-2 bg-transparent" asChild>
-                  <a href="#app-store">
-                    <Download className="h-4 w-4" />
-                    App Store
-                  </a>
-                </Button>
-                <Button variant="outline" className="gap-2 bg-transparent" asChild>
-                  <a href="#play-store">
-                    <Download className="h-4 w-4" />
-                    Google Play
-                  </a>
-                </Button>
+                <LockedDownloadOverlay locked>
+                  <Button variant="outline" className="gap-2 bg-transparent" asChild>
+                    <a href="#app-store">
+                      <Download className="h-4 w-4" />
+                      App Store
+                    </a>
+                  </Button>
+                </LockedDownloadOverlay>
+                <LockedDownloadOverlay locked>
+                  <Button variant="outline" className="gap-2 bg-transparent" asChild>
+                    <a href="#play-store">
+                      <Download className="h-4 w-4" />
+                      Google Play
+                    </a>
+                  </Button>
+                </LockedDownloadOverlay>
               </div>
             </div>
 

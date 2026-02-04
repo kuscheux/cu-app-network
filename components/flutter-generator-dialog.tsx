@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Copy, Check, Download, Smartphone, Palette, Settings, Shield, Info, FileCode } from "lucide-react"
 import type { CreditUnionConfig } from "@/types/cu-config"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 import { toast } from "sonner"
 
 interface FlutterGeneratorDialogProps {
@@ -1148,14 +1149,18 @@ class Member {
             Generated for <span className="font-medium">{config.tenant.name}</span>
           </p>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={downloadFile}>
-              <Download className="h-4 w-4 mr-2" />
-              Download This File
-            </Button>
-            <Button size="sm" onClick={downloadAll}>
-              <Download className="h-4 w-4 mr-2" />
-              Download All Files
-            </Button>
+            <LockedDownloadOverlay locked>
+              <Button variant="outline" size="sm" onClick={downloadFile} disabled>
+                <Download className="h-4 w-4 mr-2" />
+                Download This File
+              </Button>
+            </LockedDownloadOverlay>
+            <LockedDownloadOverlay locked>
+              <Button size="sm" onClick={downloadAll} disabled>
+                <Download className="h-4 w-4 mr-2" />
+                Download All Files
+              </Button>
+            </LockedDownloadOverlay>
           </div>
         </div>
       </DialogContent>

@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import type { CreditUnionData } from "@/lib/credit-union-data"
 import { useExportAllowed } from "@/hooks/use-export-allowed"
+import { LockedDownloadOverlay } from "./locked-download-overlay"
 
 interface TestCase {
   id: string
@@ -361,15 +362,17 @@ export function UATView({ cu }: { cu: CreditUnionData | null }) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!exportAllowed}
-            title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export Results
-          </Button>
+          <LockedDownloadOverlay locked={!exportAllowed}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!exportAllowed}
+              title={!exportAllowed ? exportLockedReason ?? undefined : undefined}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Results
+            </Button>
+          </LockedDownloadOverlay>
           <Button variant="outline" size="sm">
             <Upload className="h-4 w-4 mr-2" />
             Import Tests

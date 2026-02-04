@@ -128,7 +128,7 @@ export function DualFlutterStudioShell({ cu }: DualFlutterStudioShellProps) {
           ) : (
             <div className="w-7 h-7 rounded-lg bg-white/10 shrink-0" />
           )}
-          <span>Dual Studio</span>
+          <span>App Studio</span>
         </div>
         <div className="h-4 w-px bg-white/20" />
         <nav className="flex items-center gap-1">
